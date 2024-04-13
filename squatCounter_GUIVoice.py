@@ -32,6 +32,8 @@ distance_threshold = 8
 min_peak_interval = 1.0
 target_squats = 10
 
+voice_index = 1
+
 def get_accZ(): 
     response = r.get(url + '&' + 'accZ').text
     data = json.loads(response)
@@ -67,10 +69,17 @@ def set_target_squats():
     target_squats = int(target_squats_spinbox.get())
     my_meter.configure(amounttotal=target_squats)
     my_meter.configure(amountused=0)
-    # speak(f"Your target number of squats is {target_squats}")
+    # speak(f"Your target number of squats is {target_squats}", voice_index)
     target_squats_button.config(text=f"Target Squats: {target_squats}")
 
-def speak(text):
+def on_voice_select(event):
+    global voice_index
+    selected_voice = voice_selector.get()
+    # print("Selected voice:", selected_voice)
+    voice_index = int(selected_voice.split()[-1]) - 1
+    # print("Voice index:", voice_index)
+
+def speak(text, voice_index=1):
     # Initialize the pyttsx3 engine
     engine = pyttsx3.init()
 
@@ -80,7 +89,7 @@ def speak(text):
     # Set a voice (you can experiment with different indices)
     # For example, you can try changing the index to hear different voices
     # The indices vary depending on your system's available voices
-    engine.setProperty('voice', voices[1].id)
+    engine.setProperty('voice', voices[voice_index].id)
 
     # Set properties (optional)
     engine.setProperty('rate', 250)  # You can adjust the speaking rate
@@ -119,18 +128,18 @@ def detect_squats():
         current_time = time.time()
         if (peaks[-1] > max_peak_index) and (current_time - last_peak_time > min_peak_interval):
                 squats_count += 1
-                # speak(str(squats_count))
+                # speak(str(squats_count), voice_index)
                 last_peak_time = current_time
                 max_peak_index = peaks[-1]
                 print("Squat detected! Count:", squats_count)
                 if squats_count < target_squats:
-                    speak(str(squats_count))
+                    speak(str(squats_count), voice_index)
                     my_meter.configure(amountused=squats_count)
                 elif squats_count == target_squats:    
                     my_meter.configure(amountused=target_squats)
                     my_meter.configure(subtext="Target completed!")
-                    speak(target_squats)
-                    speak(f"Congratulations! You have reached your target of {target_squats} squats!")
+                    speak(target_squats, voice_index)
+                    speak(f"Congratulations! You have reached your target of {target_squats} squats!", voice_index)
                 else:
                     squats_count = 0
                     my_meter.configure(amountused=squats_count)
@@ -145,7 +154,7 @@ def detect_squats():
 
 root = ttk.Window(themename="superhero")
 root.title("Squat-O-Meter")
-root.geometry("700x700")
+root.geometry("800x800")
 
 # Use the queryDialog to prompt the user for input
 while True:
@@ -203,6 +212,25 @@ my_meter = ttk.Meter(meter_frame, bootstyle="danger",
 # my_meter.pack(pady=10, padx=10)
 my_meter.grid(row=0, column=1, padx=20)
 
+# create a frame to hold the widgets
+parameters_frame = ttk.Frame(root, padding="20")
+parameters_frame.pack()
+
+# Get the number of voices available in the system
+no_of_voices = len(pyttsx3.init().getProperty('voices'))
+
+# List of voices available in the system
+voice_list = ['Voice {}'.format(i) for i in range(1, no_of_voices + 1)] # Create a list of voice names -> ['Voice 1', 'Voice 2', 'Voice 3', ...]
+
+# Create a combobox widget to select the voice (dropdown menu)
+voice_selector = ttk.Combobox(parameters_frame, bootstyle="success", values = voice_list, state="readonly")
+voice_selector.grid(row=0, column=0, padx=20)
+
+# Set the default value of the combobox to the last item in the list
+voice_selector.set(voice_list[1]) # Set the default voice to the second voice in the list
+
+# Bind the event to the combobox
+voice_selector.bind("<<ComboboxSelected>>", on_voice_select)
 
 # # Create a slider widget
 # acceleration_threshold_slider = ttk.Scale(frame, from_=0, to=200, length=400, orient="vertical")
