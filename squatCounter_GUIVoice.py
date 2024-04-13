@@ -119,19 +119,26 @@ def detect_squats():
         current_time = time.time()
         if (peaks[-1] > max_peak_index) and (current_time - last_peak_time > min_peak_interval):
                 squats_count += 1
-                speak(str(squats_count))
+                # speak(str(squats_count))
                 last_peak_time = current_time
                 max_peak_index = peaks[-1]
                 print("Squat detected! Count:", squats_count)
                 if squats_count < target_squats:
+                    speak(str(squats_count))
                     my_meter.configure(amountused=squats_count)
-                else:
+                elif squats_count == target_squats:    
                     my_meter.configure(amountused=target_squats)
                     my_meter.configure(subtext="Target completed!")
+                    speak(target_squats)
                     speak(f"Congratulations! You have reached your target of {target_squats} squats!")
+                else:
+                    squats_count = 0
+                    my_meter.configure(amountused=squats_count)
+                    my_meter.configure(subtext="Squats done")
+                    target_squats_button.config(text=f"Set Target Squats")
         else:
-             max_peak_index = peaks[-1]
-             squats_count = int(my_meter.amountusedvar.get()) # Update the squats count from the interactive meter
+             max_peak_index = peaks[-1]                         # As the buffer moves, the max_peak_index will change (reduce the index to the last peak detected)
+             squats_count = int(my_meter.amountusedvar.get())   # Update the squats count from the interactive meter
     
     # Schedule the function to run again after a short delay
     root.after(100, detect_squats)
@@ -154,28 +161,31 @@ while True:
 
 url = 'http://' + ip_address + ':8080/get?'
 
+# create an entry frame to hold spinbox and button
+entry_frame = ttk.Frame(root, padding="20")
+entry_frame.pack()
 
 # Create a spinbox widget for the user to enter the target number of squats
-target_squats_spinbox = ttk.Spinbox(root, from_=0, to=500, 
+target_squats_spinbox = ttk.Spinbox(entry_frame, from_=0, to=500, 
                                     bootstyle="success", 
                                     font=("Helvetica", 20), 
                                     state="readonly")
-target_squats_spinbox.pack(pady=10, padx=10)
+target_squats_spinbox.grid(row=0, column=0, padx=20)
 
 # Set the default value of the spinbox to 5
 target_squats_spinbox.set(10)
 
 # Create a button to set the target number of squats
-target_squats_button = ttk.Button(root, text="Set Target Squats", command=set_target_squats)
-target_squats_button.pack(pady=10, padx=10)
+target_squats_button = ttk.Button(entry_frame, text="Set Target Squats", command=set_target_squats)
+target_squats_button.grid(row=0, column=1, padx=20)
 
 # create a frame to hold the widgets
-frame = ttk.Frame(root, padding="20")
-frame.pack()
+meter_frame = ttk.Frame(root, padding="20")
+meter_frame.pack()
 
 
 # Create a meter widget to display the number of squats performed
-my_meter = ttk.Meter(frame, bootstyle="danger", 
+my_meter = ttk.Meter(meter_frame, bootstyle="danger", 
                      textfont=("Helvetica", 50),
                      subtext="Squats done ",
                      subtextstyle="light",
