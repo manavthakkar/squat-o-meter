@@ -18,7 +18,18 @@ import numpy as np
 import pyttsx3
 
 
-url = 'http://192.168.0.103:8080/get?'
+url = 'http://192.168.113.205:8080/get?'
+
+# Parameters for squat detection
+buffer_size = 500 # higher buffer size for better accuracy
+data_buffer = []
+last_peak_time = time.time()
+max_peak_index = 0
+squats_count = 0
+height_threshold = 11.5
+distance_threshold = 8
+min_peak_interval = 1.0
+target_squats = 20
 
 def get_accZ(): 
     response = r.get(url + '&' + 'accZ').text
@@ -104,18 +115,8 @@ def detect_squats():
     # Schedule the function to run again after a short delay
     root.after(100, detect_squats)
 
-buffer_size = 500 # higher buffer size for better accuracy
-data_buffer = []
-last_peak_time = time.time()
-max_peak_index = 0
-squats_count = 0
-height_threshold = 11.5
-distance_threshold = 8
-min_peak_interval = 1.5
-target_squats = 15
-
 root = ttk.Window(themename="superhero")
-root.title("Meter Widgets")
+root.title("Squat-O-Meter")
 root.geometry("600x600")
 
 my_meter = ttk.Meter(root, bootstyle="danger", 
