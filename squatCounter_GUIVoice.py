@@ -20,7 +20,6 @@ import pyttsx3
 from tkinter.simpledialog import askstring
 import ipaddress
 
-
 # Parameters for squat detection
 buffer_size = 500 # higher buffer size for better accuracy
 data_buffer = []
@@ -91,6 +90,12 @@ def toggle_volume():
         voice_button.config(text="Turn Voice On")
         print("Value:", voice_var.get())
 
+def toggle_acc():
+    if acc_button_var.get() == 1:
+        acc_button.config(text="Using Absolute acceleration")
+    else:
+        acc_button.config(text="Use Absolute acceleration")
+
 def speak(text, voice_index=1, volume=1):
     # Initialize the pyttsx3 engine
     engine = pyttsx3.init()
@@ -127,8 +132,14 @@ def detect_squats():
     global last_peak_time
     global max_peak_index
     global target_squats
+    global acc_button_var
     
-    accZ = get_accZ()
+    if acc_button_var.get() == 1:
+        # print("Using absolute acceleration")
+        accZ = get_accAbs()
+    else:   
+        # print("Using acceleration in Z direction") 
+        accZ = get_accZ()
     
     data_buffer.append(accZ)
     if len(data_buffer) > buffer_size:
@@ -252,6 +263,23 @@ voice_button = ttk.Checkbutton(parameters_frame,
                                onvalue=1, offvalue=0,
                                bootstyle="success, toolbutton")
 voice_button.grid(row=1, column=0, padx=20, pady=10)
+
+# Style the round toggle button for acceleration
+acc_style = ttk.Style()
+acc_style.configure("success.TCheckbutton", font=("Helvetica", 12))
+
+# Round toggle button to toggle between absolute acceleration and acceleration in Z direction
+acc_button_var = IntVar()
+acc_button = ttk.Checkbutton(parameters_frame,
+                             bootstyle="success, round-toggle", # it doesn't appear round in the GUI as the style is overriding it
+                             text="Use Absolute Acceleration",
+                             variable=acc_button_var,
+                             onvalue=1, 
+                             offvalue=0,
+                             command=toggle_acc,
+                             style="success.TCheckbutton"
+                             )
+acc_button.grid(row=0, column=1, padx=20, pady=10)
 
 # # Create a slider widget
 # acceleration_threshold_slider = ttk.Scale(frame, from_=0, to=200, length=400, orient="vertical")
