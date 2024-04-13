@@ -18,7 +18,7 @@ import numpy as np
 import pyttsx3
 
 
-url = 'http://192.168.113.205:8080/get?'
+url = 'http://192.168.0.101:8080/get?'
 
 # Parameters for squat detection
 buffer_size = 500 # higher buffer size for better accuracy
@@ -29,7 +29,7 @@ squats_count = 0
 height_threshold = 11.5
 distance_threshold = 8
 min_peak_interval = 1.0
-target_squats = 20
+target_squats = 5
 
 def get_accZ(): 
     response = r.get(url + '&' + 'accZ').text
@@ -89,6 +89,7 @@ def detect_squats():
     global data_buffer
     global last_peak_time
     global max_peak_index
+    global target_squats
     
     accZ = get_accZ()
     
@@ -103,14 +104,20 @@ def detect_squats():
         if (peaks[-1] > max_peak_index) and (current_time - last_peak_time > min_peak_interval):
                 squats_count += 1
                 speak(str(squats_count))
+                # speak(f"Keep it up! You have done {squats_count} squats. {target_squats - squats_count} more to go!")
                 # time.sleep(0.2)
                 last_peak_time = current_time
                 max_peak_index = peaks[-1]
                 print("Squat detected! Count:", squats_count)
                 # my_meter.step(1) # Increase the meter by 1
-                my_meter.configure(amountused=squats_count)
+                if squats_count < target_squats:
+                    my_meter.configure(amountused=squats_count)
+                else:
+                    my_meter.configure(amountused=target_squats)
+                    speak(f"Congratulations! You have reached your target of {target_squats} squats!")
         else:
              max_peak_index = peaks[-1]
+             squats_count = int(my_meter.amountusedvar.get()) # Update the squats count from the interactive meter
     
     # Schedule the function to run again after a short delay
     root.after(100, detect_squats)
