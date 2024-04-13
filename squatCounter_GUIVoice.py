@@ -17,7 +17,6 @@ from scipy.signal import find_peaks
 import numpy as np
 import pyttsx3
 
-
 url = 'http://192.168.0.101:8080/get?'
 
 # Parameters for squat detection
@@ -60,6 +59,14 @@ def get_accAbs():
             return None
         
     return acc
+
+def set_target_squats():
+    global target_squats
+    target_squats = int(target_squats_spinbox.get())
+    my_meter.configure(amounttotal=target_squats)
+    my_meter.configure(amountused=0)
+    # speak(f"Your target number of squats is {target_squats}")
+    target_squats_button.config(text=f"Target Squats: {target_squats}")
 
 def speak(text):
     # Initialize the pyttsx3 engine
@@ -104,12 +111,9 @@ def detect_squats():
         if (peaks[-1] > max_peak_index) and (current_time - last_peak_time > min_peak_interval):
                 squats_count += 1
                 speak(str(squats_count))
-                # speak(f"Keep it up! You have done {squats_count} squats. {target_squats - squats_count} more to go!")
-                # time.sleep(0.2)
                 last_peak_time = current_time
                 max_peak_index = peaks[-1]
                 print("Squat detected! Count:", squats_count)
-                # my_meter.step(1) # Increase the meter by 1
                 if squats_count < target_squats:
                     my_meter.configure(amountused=squats_count)
                 else:
@@ -125,6 +129,20 @@ def detect_squats():
 root = ttk.Window(themename="superhero")
 root.title("Squat-O-Meter")
 root.geometry("600x600")
+
+# Create a spinbox widget for the user to enter the target number of squats
+target_squats_spinbox = ttk.Spinbox(root, from_=0, to=500, 
+                                    bootstyle="success", 
+                                    font=("Helvetica", 20), 
+                                    state="readonly")
+target_squats_spinbox.pack(pady=10, padx=10)
+
+# Set the default value of the spinbox to 5
+target_squats_spinbox.set(10)
+
+# Create a button to set the target number of squats
+target_squats_button = ttk.Button(root, text="Set Target Squats", command=set_target_squats)
+target_squats_button.pack(pady=10, padx=10)
 
 my_meter = ttk.Meter(root, bootstyle="danger", 
                      textfont=("Helvetica", 50),
