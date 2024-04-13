@@ -96,6 +96,11 @@ def toggle_acc():
     else:
         acc_button.config(text="Use Absolute acceleration")
 
+def show_acc_threshold(event):
+    global height_threshold
+    acceleration_threshold_label.config(text=f"Acceleration Threshold: {acceleration_threshold_slider.get():.2f} m/s\u00b2") # Update the label with the current value
+    height_threshold = float(acceleration_threshold_slider.get())
+
 def speak(text, voice_index=1, volume=1):
     # Initialize the pyttsx3 engine
     engine = pyttsx3.init()
@@ -145,6 +150,7 @@ def detect_squats():
     if len(data_buffer) > buffer_size:
         data_buffer = data_buffer[-buffer_size:]
     
+    # print("Height Threshold:", height_threshold)
     peaks, _ = find_peaks(data_buffer, height= height_threshold, distance= distance_threshold)  
 
     if len(peaks) > 0:
@@ -245,7 +251,7 @@ no_of_voices = len(pyttsx3.init().getProperty('voices'))
 voice_list = ['Voice {}'.format(i) for i in range(1, no_of_voices + 1)] # Create a list of voice names -> ['Voice 1', 'Voice 2', 'Voice 3', ...]
 
 # Create a combobox widget to select the voice (dropdown menu)
-voice_selector = ttk.Combobox(parameters_frame, bootstyle="success", values = voice_list, state="readonly", font=("Helvetica", 10))
+voice_selector = ttk.Combobox(parameters_frame, bootstyle="success", values = voice_list, state="readonly", font=("Helvetica", 10), width=10)
 voice_selector.grid(row=0, column=0, padx=20, pady=10)
 
 # Set the default value of the combobox to the last item in the list
@@ -261,7 +267,8 @@ voice_button = ttk.Checkbutton(parameters_frame,
                                variable=voice_var,
                                command=toggle_volume,
                                onvalue=1, offvalue=0,
-                               bootstyle="success, toolbutton")
+                               bootstyle="success, toolbutton",
+                               width=12)
 voice_button.grid(row=1, column=0, padx=20, pady=10)
 
 # Style the round toggle button for acceleration
@@ -279,11 +286,25 @@ acc_button = ttk.Checkbutton(parameters_frame,
                              command=toggle_acc,
                              style="success.TCheckbutton"
                              )
-acc_button.grid(row=0, column=1, padx=20, pady=10)
+acc_button.grid(row=0, column=1, padx=25, pady=10)
 
-# # Create a slider widget
-# acceleration_threshold_slider = ttk.Scale(frame, from_=0, to=200, length=400, orient="vertical")
-# acceleration_threshold_slider.grid(row=0, column=0, padx=20)
+# Create a label to display the acceleration threshold value
+acceleration_threshold_label = ttk.Label(parameters_frame, text="", font=("Helvetica", 10))
+acceleration_threshold_label.grid(row=1, column=2, padx=20)
+
+# Create a slider widget to adjust the acceleration threshold
+acceleration_threshold_slider = ttk.Scale(parameters_frame, 
+                                          from_=10, 
+                                          to=15, 
+                                          length=240, 
+                                          orient="horizontal", 
+                                          bootstyle="success",
+                                          command=show_acc_threshold)
+
+acceleration_threshold_slider.grid(row=0, column=2, padx=20)
+
+# Set the default value of the slider
+acceleration_threshold_slider.set(11.5)
 
 # Start the squat detection function
 detect_squats()
