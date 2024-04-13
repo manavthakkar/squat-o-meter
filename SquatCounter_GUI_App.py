@@ -31,7 +31,7 @@ distance_threshold = 8
 min_peak_interval = 1.0
 target_squats = 10
 
-voice_index = 1
+voice_index = 0
 volume = 1
 
 def get_accZ(): 
