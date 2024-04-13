@@ -9,6 +9,7 @@ The meter will increase by 1 each time a squat is detected.
 from PIL import Image
 Image.CUBIC = Image.BICUBIC
 from tkinter import *
+from tkinter import Tk, messagebox
 import ttkbootstrap as ttk
 import time
 import requests as r
@@ -16,8 +17,9 @@ import json
 from scipy.signal import find_peaks
 import numpy as np
 import pyttsx3
+from tkinter.simpledialog import askstring
+import ipaddress
 
-url = 'http://192.168.0.101:8080/get?'
 
 # Parameters for squat detection
 buffer_size = 500 # higher buffer size for better accuracy
@@ -28,7 +30,7 @@ squats_count = 0
 height_threshold = 11.5
 distance_threshold = 8
 min_peak_interval = 1.0
-target_squats = 5
+target_squats = 10
 
 def get_accZ(): 
     response = r.get(url + '&' + 'accZ').text
@@ -90,6 +92,13 @@ def speak(text):
     # Wait for speech to finish
     engine.runAndWait()
 
+def is_valid_ip(address):
+    try:
+        ipaddress.IPv4Address(address)  # Check if it's a valid IPv4 address
+        return True
+    except ipaddress.AddressValueError:
+        return False
+
 # Function to detect squats and update the meter
 def detect_squats():
     global squats_count
@@ -118,6 +127,7 @@ def detect_squats():
                     my_meter.configure(amountused=squats_count)
                 else:
                     my_meter.configure(amountused=target_squats)
+                    my_meter.configure(subtext="Target completed!")
                     speak(f"Congratulations! You have reached your target of {target_squats} squats!")
         else:
              max_peak_index = peaks[-1]
@@ -128,7 +138,22 @@ def detect_squats():
 
 root = ttk.Window(themename="superhero")
 root.title("Squat-O-Meter")
-root.geometry("600x600")
+root.geometry("700x700")
+
+# Use the queryDialog to prompt the user for input
+while True:
+    ip_address = askstring('Enter IP Address', 'Please enter the IP address:', parent=root)
+    if ip_address is None:
+        # User clicked cancel, break out of the loop
+        break
+    elif is_valid_ip(ip_address):
+        print('Entered IP address:', ip_address)
+        break  # Break out of the loop if the IP address is valid
+    else:
+        messagebox.showerror('Error', 'Invalid IP address entered')
+
+url = 'http://' + ip_address + ':8080/get?'
+
 
 # Create a spinbox widget for the user to enter the target number of squats
 target_squats_spinbox = ttk.Spinbox(root, from_=0, to=500, 
@@ -144,7 +169,13 @@ target_squats_spinbox.set(10)
 target_squats_button = ttk.Button(root, text="Set Target Squats", command=set_target_squats)
 target_squats_button.pack(pady=10, padx=10)
 
-my_meter = ttk.Meter(root, bootstyle="danger", 
+# create a frame to hold the widgets
+frame = ttk.Frame(root, padding="20")
+frame.pack()
+
+
+# Create a meter widget to display the number of squats performed
+my_meter = ttk.Meter(frame, bootstyle="danger", 
                      textfont=("Helvetica", 50),
                      subtext="Squats done ",
                      subtextstyle="light",
@@ -159,7 +190,13 @@ my_meter = ttk.Meter(root, bootstyle="danger",
                      amounttotal=target_squats,
                      stepsize=1
                      ) 
-my_meter.pack(pady=10, padx=10)
+# my_meter.pack(pady=10, padx=10)
+my_meter.grid(row=0, column=1, padx=20)
+
+
+# # Create a slider widget
+# acceleration_threshold_slider = ttk.Scale(frame, from_=0, to=200, length=400, orient="vertical")
+# acceleration_threshold_slider.grid(row=0, column=0, padx=20)
 
 # Start the squat detection function
 detect_squats()
