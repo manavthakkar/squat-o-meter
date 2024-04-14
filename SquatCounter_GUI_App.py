@@ -101,6 +101,11 @@ def show_acc_threshold(event):
     acceleration_threshold_label.config(text=f"Acceleration Threshold: {acceleration_threshold_slider.get():.2f} m/s\u00b2") # Update the label with the current value
     height_threshold = float(acceleration_threshold_slider.get())
 
+def set_buffer_size(event):
+    global buffer_size
+    buffer_size_label.config(text=f"Moving Window size: {int(buffer_size_slider.get())} samples") # Update the label with the current value
+    buffer_size = int(buffer_size_slider.get())
+
 def speak(text, voice_index=1, volume=1):
     # Initialize the pyttsx3 engine
     engine = pyttsx3.init()
@@ -150,7 +155,6 @@ def detect_squats():
     if len(data_buffer) > buffer_size:
         data_buffer = data_buffer[-buffer_size:]
     
-    # print("Height Threshold:", height_threshold)
     peaks, _ = find_peaks(data_buffer, height= height_threshold, distance= distance_threshold)  
 
     if len(peaks) > 0:
@@ -183,7 +187,7 @@ def detect_squats():
 
 root = ttk.Window(themename="superhero")
 root.title("Squat-O-Meter")
-root.geometry("800x800")
+root.geometry("850x850")
 
 # Use the queryDialog to prompt the user for input
 while True:
@@ -206,16 +210,34 @@ entry_frame.pack()
 # Create a spinbox widget for the user to enter the target number of squats
 target_squats_spinbox = ttk.Spinbox(entry_frame, from_=0, to=500, 
                                     bootstyle="success", 
-                                    font=("Helvetica", 20), 
-                                    state="readonly")
-target_squats_spinbox.grid(row=0, column=0, padx=20)
+                                    font=("Helvetica", 14), 
+                                    state="readonly", width=8)
+target_squats_spinbox.grid(row=0, column=1, padx=10, pady=20)
 
 # Set the default value of the spinbox to 5
 target_squats_spinbox.set(10)
 
 # Create a button to set the target number of squats
 target_squats_button = ttk.Button(entry_frame, text="Set Target Squats", command=set_target_squats)
-target_squats_button.grid(row=0, column=1, padx=20)
+target_squats_button.grid(row=1, column=1, padx=20)
+
+# Create buffer size slider
+buffer_size_slider = ttk.Scale(entry_frame, 
+                                          from_=100, 
+                                          to=500, 
+                                          length=240, 
+                                          orient="horizontal", 
+                                          bootstyle="success",
+                                          command=set_buffer_size)
+
+buffer_size_slider.grid(row=0, column=0, padx=20)
+
+# Create a label to display the buffer size value
+buffer_size_label = ttk.Label(entry_frame, text="", font=("Helvetica", 10))
+buffer_size_label.grid(row=1, column=0, padx=20)
+
+# Set the default value of the buffer size slider
+buffer_size_slider.set(500)
 
 # create a frame to hold the widgets
 meter_frame = ttk.Frame(root, padding="20")
