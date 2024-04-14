@@ -36,32 +36,42 @@ voice_index = 0
 volume = 1
 
 def get_accZ(): 
-    response = r.get(url + '&' + 'accZ').text
-    data = json.loads(response)
-    
-    accZ = data.get('buffer', {}).get('accZ', {}).get('buffer', [None])[0]
-    
-    if accZ is not None:
-        try:
-            accZ = float(accZ)
-        except ValueError:
-            print("Error: Could not convert accZ to float")
-            return None
+    try:
+        response = r.get(url + '&' + 'accZ').text
+        data = json.loads(response)
+        
+        accZ = data.get('buffer', {}).get('accZ', {}).get('buffer', [None])[0]
+        
+        if accZ is not None:
+            try:
+                accZ = float(accZ)
+            except ValueError:
+                print("Error: Could not convert accZ to float")
+                return None
+    except r.exceptions.RequestException as e:
+        print(f"Error: {e}")
+        my_meter.configure(subtext="Connection lost!")
+        return None
         
     return accZ
 
 def get_accAbs(): 
-    response = r.get(url + '&' + 'acc').text
-    data = json.loads(response)
-    
-    acc = data.get('buffer', {}).get('acc', {}).get('buffer', [None])[0]
-    
-    if acc is not None:
-        try:
-            acc = float(acc)
-        except ValueError:
-            print("Error: Could not convert accZ to float")
-            return None
+    try:
+        response = r.get(url + '&' + 'acc').text
+        data = json.loads(response)
+        
+        acc = data.get('buffer', {}).get('acc', {}).get('buffer', [None])[0]
+        
+        if acc is not None:
+            try:
+                acc = float(acc)
+            except ValueError:
+                print("Error: Could not convert acc to float")
+                return None
+    except r.exceptions.RequestException as e:
+        print(f"Error: {e}")
+        my_meter.configure(subtext="Connection lost!")
+        return None
         
     return acc
 
@@ -151,11 +161,15 @@ def detect_squats():
     global acc_button_var
     
     if acc_button_var.get() == 1:
-        # print("Using absolute acceleration")
+        # print("Using absolute acceleration")  
         accZ = get_accAbs()
     else:   
         # print("Using acceleration in Z direction") 
         accZ = get_accZ()
+
+    # If the connection is not refused and the squats count is less than the target squats
+    if accZ is not None and squats_count < target_squats:
+        my_meter.configure(subtext="Squats done")
     
     data_buffer.append(accZ)
     if len(data_buffer) > buffer_size:
@@ -174,6 +188,7 @@ def detect_squats():
                 if squats_count < target_squats:
                     speak(str(squats_count), voice_index, volume)
                     my_meter.configure(amountused=squats_count)
+                    # my_meter.configure(subtext="Squats done")
                 elif squats_count == target_squats:    
                     my_meter.configure(amountused=target_squats)
                     my_meter.configure(subtext="Target completed!")
