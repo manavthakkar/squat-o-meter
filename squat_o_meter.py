@@ -19,6 +19,7 @@ import numpy as np
 import pyttsx3
 from tkinter.simpledialog import askstring
 import ipaddress
+import os
 
 # Parameters for squat detection
 buffer_size = 500 # higher buffer size for better accuracy
@@ -193,6 +194,13 @@ def detect_squats():
 root = ttk.Window(themename="superhero")
 root.title("Squat-O-Meter")
 root.geometry("850x850")
+
+# Get the path to the script
+script_dir = os.path.dirname(__file__)
+
+# Set the icon using a relative path
+icon_path = os.path.join(script_dir, "icon.ico")
+root.iconbitmap(icon_path)
 
 # Use the queryDialog to prompt the user for input
 while True:
