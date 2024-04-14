@@ -106,6 +106,11 @@ def set_buffer_size(event):
     buffer_size_label.config(text=f"Moving Window size: {int(buffer_size_slider.get())} samples") # Update the label with the current value
     buffer_size = int(buffer_size_slider.get())
 
+def set_min_peak_interval(event):
+    global min_peak_interval
+    min_peak_interval_label.config(text=f"Minimum time b/w squats: {min_peak_interval_slider.get():.1f} seconds") # Update the label with the current value
+    min_peak_interval = float(min_peak_interval_slider.get())
+
 def speak(text, voice_index=1, volume=1):
     # Initialize the pyttsx3 engine
     engine = pyttsx3.init()
@@ -238,6 +243,24 @@ buffer_size_label.grid(row=1, column=0, padx=20)
 
 # Set the default value of the buffer size slider
 buffer_size_slider.set(500)
+
+# Create minimum peak interval slider
+min_peak_interval_slider = ttk.Scale(entry_frame,
+                                            from_=0.5, 
+                                            to=2, 
+                                            length=240, 
+                                            orient="horizontal", 
+                                            bootstyle="success",
+                                            command=set_min_peak_interval)
+
+min_peak_interval_slider.grid(row=0, column=2, padx=20)
+
+# Create a label to display the minimum peak interval value
+min_peak_interval_label = ttk.Label(entry_frame, text="", font=("Helvetica", 10))
+min_peak_interval_label.grid(row=1, column=2, padx=20)
+
+# Set the default value of the minimum peak interval slider
+min_peak_interval_slider.set(1.0)
 
 # create a frame to hold the widgets
 meter_frame = ttk.Frame(root, padding="20")
