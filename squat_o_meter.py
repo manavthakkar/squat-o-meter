@@ -8,8 +8,9 @@ The meter will increase by 1 each time a squat is detected.
 
 from PIL import Image
 Image.CUBIC = Image.BICUBIC
+import tkinter as tk
 from tkinter import *
-from tkinter import Tk, messagebox
+from tkinter import messagebox
 import ttkbootstrap as ttk
 import time
 import requests as r
@@ -228,7 +229,11 @@ def detect_squats():
 
 root = ttk.Window(themename="superhero")
 root.title("Squat-O-Meter")
-root.geometry("850x850")
+root.geometry("850x870")
+
+# Set minimum and maximum size of the window
+root.minsize(850, 870)
+root.maxsize(850, 870)
 
 # Get the path to the script
 script_dir = os.path.dirname(__file__)
@@ -251,9 +256,17 @@ while True:
 
 url = 'http://' + ip_address + ':8080/get?'
 
-# create an entry frame to hold spinbox and button
-entry_frame = ttk.Frame(root, padding="20")
-entry_frame.pack()
+# Create the notebook
+notebook = ttk.Notebook(root)
+notebook.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
+
+# Create tab 1
+tab1 = ttk.Frame(notebook)
+notebook.add(tab1, text='Count Squats')
+
+# create an entry frame to hold widgets above the meter
+entry_frame = ttk.Frame(tab1)
+entry_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
 # Create a spinbox widget for the user to enter the target number of squats
 target_squats_spinbox = ttk.Spinbox(entry_frame, from_=0, to=500, 
@@ -305,9 +318,13 @@ min_peak_interval_label.grid(row=1, column=2, padx=20)
 # Set the default value of the minimum peak interval slider
 min_peak_interval_slider.set(1.0)
 
-# create a frame to hold the widgets
-meter_frame = ttk.Frame(root, padding="20")
-meter_frame.pack()
+# create a frame to hold the widgets in meter region
+meter_frame = ttk.Frame(tab1)
+meter_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+
+# Create an empty label on the left side of the meter
+empty_label = ttk.Label(meter_frame, text="", font=("Helvetica", 10))
+empty_label.grid(row=0, column=0, padx=55)
 
 
 # Create a meter widget to display the number of squats performed
@@ -328,9 +345,9 @@ my_meter = ttk.Meter(meter_frame, bootstyle="danger",
                      ) 
 my_meter.grid(row=0, column=1, padx=20)
 
-# create a frame to hold the widgets
-parameters_frame = ttk.Frame(root, padding="20")
-parameters_frame.pack()
+# create a frame to hold the widgets below the meter
+parameters_frame = ttk.Frame(tab1)
+parameters_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
 # Get the number of voices available in the system
 no_of_voices = len(pyttsx3.init().getProperty('voices'))
@@ -405,6 +422,14 @@ acceleration_threshold_slider.grid(row=0, column=2, padx=20)
 
 # Set the default value of the slider
 acceleration_threshold_slider.set(11.5)
+
+# Create tab 2
+tab2 = ttk.Frame(notebook)
+notebook.add(tab2, text='Analyze Data')
+
+# Add a button to tab 2
+button = ttk.Button(tab2, text="Button")
+button.pack(pady=20)
 
 # Start the squat detection function
 detect_squats()
