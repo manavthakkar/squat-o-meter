@@ -22,6 +22,8 @@ from tkinter.simpledialog import askstring
 import ipaddress
 import os
 from functions import *
+import threading
+import queue
 
 # Parameters for squat detection
 buffer_size = 500 # higher buffer size for better accuracy
@@ -132,28 +134,37 @@ def save_data():
     # else:
     #     print("Data will not be saved to database")
 
-def speak(text, voice_index=1, volume=1):
-    # Initialize the pyttsx3 engine
-    engine = pyttsx3.init()
+# Create a queue to hold text to be spoken
+speech_queue = queue.Queue()
 
+# Define a function to speak the text
+def speak_thread():
+    while True:
+        text = speech_queue.get()
+        if text is None:
+            break
+        engine.say(text)
+        engine.runAndWait()
+
+# Start a new thread to handle speech synthesis
+threading.Thread(target=speak_thread, daemon=True).start()
+
+# Modify the speak function to accept the text to be spoken as an argument
+def speak(text, voice_index=1, volume=1):
+    if volume == 0:
+        return
     # Get available voices
     voices = engine.getProperty('voices')
 
-    # Set a voice (you can experiment with different indices)
-    # For example, you can try changing the index to hear different voices
-    # The indices vary depending on your system's available voices
+    # Set the desired voice
     engine.setProperty('voice', voices[voice_index].id)
 
     # Set properties (optional)
     engine.setProperty('rate', 250)  # You can adjust the speaking rate
     engine.setProperty('volume', volume)  # You can adjust the volume 
 
-    # Speak the text
-    engine.say(text)
-
-    # Wait for speech to finish
-    engine.runAndWait()
-
+    # Put the text into the speech queue
+    speech_queue.put(text)
 def is_valid_ip(address):
     try:
         ipaddress.IPv4Address(address)  # Check if it's a valid IPv4 address
@@ -420,7 +431,13 @@ notebook.add(tab2, text='Analyze Data')
 button = ttk.Button(tab2, text="Button")
 button.pack(pady=20)
 
+# Initialize the pyttsx3 engine outside the speak function
+engine = pyttsx3.init()
+
 # Start the squat detection function
 detect_squats()
+
+# Call engine.runAndWait() before the main event loop to ensure any pending speech is spoken
+engine.runAndWait()
 
 root.mainloop()
