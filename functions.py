@@ -28,3 +28,24 @@ def save_squat_count(squat_count):
     
     # Save updated DataFrame to CSV
     updated_df.to_csv('squat_count.csv', index=False)
+
+
+def get_squat_sum_month(month, year):
+    """
+    This function reads the squat count data from a CSV file and returns the sum of squat counts for a given month and year.
+
+    """
+    # Read CSV file
+    try:
+        df = pd.read_csv('squat_count.csv')
+    except FileNotFoundError:
+        print("Error: squat_count.csv file not found.")
+        return None
+
+    # Filter DataFrame based on month and year
+    filtered_df = df[(df['Month'] == month) & (df['Year'] == year)]
+
+    # Calculate sum of squat counts
+    squat_count_sum = filtered_df['Count'].sum()
+
+    return squat_count_sum
