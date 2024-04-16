@@ -1,5 +1,6 @@
 import pandas as pd
 from datetime import datetime
+from tkinter import messagebox
 
 def save_squat_count(squat_count):
     # Get current date
@@ -49,3 +50,14 @@ def get_squat_sum_month(month, year):
     squat_count_sum = filtered_df['Count'].sum()
 
     return squat_count_sum
+
+def confirm_save(squats_count):
+    answer = messagebox.askokcancel("Confirmation", "Are you sure you want to save?")
+    if answer:
+        # If the user clicks OK, save to database
+        print("Saved to database")
+        save_squat_count(squats_count)
+        messagebox.showinfo("Save Successful", "Data saved successfully")
+    else:
+        # If the user clicks Cancel, don't save
+        print("User clicked Cancel, data not saved")
