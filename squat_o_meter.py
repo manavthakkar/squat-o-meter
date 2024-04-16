@@ -20,6 +20,7 @@ import pyttsx3
 from tkinter.simpledialog import askstring
 import ipaddress
 import os
+from functions import *
 
 # Parameters for squat detection
 buffer_size = 500 # higher buffer size for better accuracy
@@ -83,6 +84,17 @@ def set_target_squats():
     # speak(f"Your target number of squats is {target_squats}", voice_index, volume)
     target_squats_button.config(text=f"Target Squats: {target_squats}")
 
+def confirm_save():
+    answer = messagebox.askokcancel("Confirmation", "Are you sure you want to save?")
+    if answer:
+        # If the user clicks OK, save to database
+        print("Saved to database")
+        save_squat_count(squats_count)
+        messagebox.showinfo("Save Successful", "Data saved successfully")
+    else:
+        # If the user clicks Cancel, don't save
+        print("User clicked Cancel, data not saved")
+
 def on_voice_select(event):
     global voice_index
     selected_voice = voice_selector.get()
@@ -121,6 +133,14 @@ def set_min_peak_interval(event):
     global min_peak_interval
     min_peak_interval_label.config(text=f"Minimum time b/w squats: {min_peak_interval_slider.get():.1f} seconds") # Update the label with the current value
     min_peak_interval = float(min_peak_interval_slider.get())
+
+def save_data():
+    if save_button_var.get() == 1:
+        # print("Data will be saved to database")
+        confirm_save()
+        save_button_var.set(0)
+    # else:
+    #     print("Data will not be saved to database")
 
 def speak(text, voice_index=1, volume=1):
     # Initialize the pyttsx3 engine
@@ -355,6 +375,18 @@ acc_button = ttk.Checkbutton(parameters_frame,
                              style="success.TCheckbutton"
                              )
 acc_button.grid(row=0, column=1, padx=25, pady=10)
+
+# Create a check button to ask user to save the data to database
+save_button_var = IntVar()
+save_button = ttk.Checkbutton(  parameters_frame,
+                                bootstyle="success, toolbutton, outline",
+                                text="Save to Database",
+                                variable=save_button_var,
+                                width=22,
+                                onvalue=1,
+                                offvalue=0,
+                                command=save_data)
+save_button.grid(row=1, column=1, padx=15, pady=10)
 
 # Create a label to display the acceleration threshold value
 acceleration_threshold_label = ttk.Label(parameters_frame, text="", font=("Helvetica", 10))
