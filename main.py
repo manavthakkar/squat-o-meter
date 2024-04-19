@@ -165,12 +165,6 @@ def speak(text, voice_index=1, volume=1):
 
     # Put the text into the speech queue
     speech_queue.put(text)
-def is_valid_ip(address):
-    try:
-        ipaddress.IPv4Address(address)  # Check if it's a valid IPv4 address
-        return True
-    except ipaddress.AddressValueError:
-        return False
 
 # Function to detect squats and update the meter
 def detect_squats():

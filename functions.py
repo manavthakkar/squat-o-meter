@@ -1,6 +1,7 @@
 import pandas as pd
 from datetime import datetime
 from tkinter import messagebox
+import ipaddress
 
 def save_squat_count(squat_count):
     # Get current date
@@ -61,3 +62,10 @@ def confirm_save(squats_count):
     else:
         # If the user clicks Cancel, don't save
         print("User clicked Cancel, data not saved")
+
+def is_valid_ip(address):
+    try:
+        ipaddress.IPv4Address(address)  # Check if it's a valid IPv4 address
+        return True
+    except ipaddress.AddressValueError:
+        return False
