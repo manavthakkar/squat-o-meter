@@ -210,7 +210,7 @@ def generate_plot():
         plot_canvas.get_tk_widget().destroy()
 
     # Embed the plot in the Tkinter window
-    plot_canvas = FigureCanvasTkAgg(fig, master=frame2_tab2)
+    plot_canvas = FigureCanvasTkAgg(fig, master=plot_frame)
     plot_canvas.draw()
     plot_canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
 
@@ -518,11 +518,11 @@ tab2 = ttk.Frame(notebook)
 notebook.add(tab2, text='Analyze Data')
 
 # Create frame 1 to hold the widgets in tab 2
-frame1_tab2 = ttk.Frame(tab2)
-frame1_tab2.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+widget_frame = ttk.Frame(tab2)
+widget_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
 ############# Add a menu for selecting month ################
-month_menu = ttk.Menubutton(frame1_tab2, text="Select Month", bootstyle="primary", width=15)
+month_menu = ttk.Menubutton(widget_frame, text="Select Month", bootstyle="primary", width=15)
 month_menu.grid(row=0, column=0, padx=(55,90), pady=30)
 
 # Create a menu for the month
@@ -543,7 +543,7 @@ month_menu['menu'] = inside_menu
 
 ############# Create a spinbox to select year ################
 
-year_spinbox = ttk.Spinbox(frame1_tab2, from_=2024, to=2100, 
+year_spinbox = ttk.Spinbox(widget_frame, from_=2024, to=2100, 
                                     bootstyle="primary", 
                                     font=("Helvetica", 11), 
                                     state="readonly", width=8)
@@ -562,7 +562,7 @@ plot_month_button_style.configure("success.Outline.TButton", font=("Helvetica", 
 
 ############# Create a button to plot the month data ################
 
-plot_month_button = ttk.Button(frame1_tab2, text="Show Month Data", command=generate_plot, #width=9, 
+plot_month_button = ttk.Button(widget_frame, text="Show Month Data", command=generate_plot, #width=9, 
                                bootstyle="success", 
                                style="success.Outline.TButton")
 plot_month_button.grid(row=0, column=2, padx=(90,0), pady=30)
@@ -570,8 +570,8 @@ plot_month_button.grid(row=0, column=2, padx=(90,0), pady=30)
 ############# End of button to fetch the data ################
 
 ############# Create a frame to hold the plot ################
-frame2_tab2 = ttk.Frame(tab2)
-frame2_tab2.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+plot_frame = ttk.Frame(tab2)
+plot_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
 
 # Initialize the pyttsx3 engine outside the speak function

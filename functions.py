@@ -58,7 +58,7 @@ def confirm_save(squats_count):
         # If the user clicks OK, save to database
         print("Saved to database")
         save_squat_count(squats_count)
-        messagebox.showinfo("Save Successful", "Data saved successfully")
+        messagebox.showinfo("Save Successful", f"{squats_count} squats saved successfully!")
     else:
         # If the user clicks Cancel, don't save
         print("User clicked Cancel, data not saved")
