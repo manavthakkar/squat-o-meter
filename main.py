@@ -24,6 +24,7 @@ import os
 from functions import *
 import threading
 import queue
+import calendar
 
 # Parameters for squat detection
 buffer_size = 500 # higher buffer size for better accuracy
@@ -125,6 +126,19 @@ def set_min_peak_interval(event):
     global min_peak_interval
     min_peak_interval_label.config(text=f"Minimum time b/w squats: {min_peak_interval_slider.get():.1f} seconds") # Update the label with the current value
     min_peak_interval = float(min_peak_interval_slider.get())
+
+def selected_month(month):
+    month_menu.config(text=month)
+    #print("Selected month:", month)
+
+def plot_month():
+    selected_month = month_menu.cget("text")
+    selected_year = year_spinbox.get()
+    selected_month_num = list(calendar.month_name).index(selected_month)
+    print("Selected month:", selected_month)
+    print("Selected year:", selected_year)
+    print("Selected month number:", selected_month_num)
+
 
 def save_data():
     if save_button_var.get() == 1:
@@ -254,9 +268,12 @@ url = 'http://' + ip_address + ':8080/get?'
 notebook = ttk.Notebook(root)
 notebook.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
 
+################################################
 # Create tab 1
+################################################
 tab1 = ttk.Frame(notebook)
 notebook.add(tab1, text='Count Squats')
+
 
 # create an entry frame to hold widgets above the meter
 entry_frame = ttk.Frame(tab1)
@@ -417,13 +434,64 @@ acceleration_threshold_slider.grid(row=0, column=2, padx=20)
 # Set the default value of the slider
 acceleration_threshold_slider.set(11.5)
 
+################################################
 # Create tab 2
+################################################
 tab2 = ttk.Frame(notebook)
 notebook.add(tab2, text='Analyze Data')
 
-# Add a button to tab 2
-button = ttk.Button(tab2, text="Button")
-button.pack(pady=20)
+# Create frame 1 to hold the widgets in tab 2
+frame1_tab2 = ttk.Frame(tab2)
+frame1_tab2.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+
+############# Add a menu for selecting month ################
+month_menu = ttk.Menubutton(frame1_tab2, text="Select Month", bootstyle="primary", width=15)
+month_menu.grid(row=0, column=0, padx=(55,90), pady=30)
+
+# Create a menu for the month
+inside_menu = ttk.Menu(month_menu)
+
+# Add the months to the menu
+for x in ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']:
+    inside_menu.add_radiobutton(label=x, command=lambda month=x: selected_month(month))
+
+# Set the default month to January
+month_menu.config(text="January")
+
+# Attach the menu to the menubutton
+month_menu['menu'] = inside_menu
+
+############# End of menu for selecting month ################
+
+
+############# Create a spinbox to select year ################
+
+year_spinbox = ttk.Spinbox(frame1_tab2, from_=2024, to=2100, 
+                                    bootstyle="primary", 
+                                    font=("Helvetica", 11), 
+                                    state="readonly", width=8)
+year_spinbox.grid(row=0, column=1, padx=0, pady=30)
+
+# Set the default value of the spinbox to 2024
+year_spinbox.set(2024)
+
+############# End of spinbox to select year ################
+
+
+############# Create a style for the plot month button ################
+
+plot_month_button_style = ttk.Style()
+plot_month_button_style.configure("success.Outline.TButton", font=("Helvetica", 11))
+
+############# Create a button to plot the month data ################
+
+plot_month_button = ttk.Button(frame1_tab2, text="Show Month Data", command=plot_month, #width=9, 
+                               bootstyle="success", 
+                               style="success.Outline.TButton")
+plot_month_button.grid(row=0, column=2, padx=(90,0), pady=30)
+
+############# End of button to fetch the data ################
+
 
 # Initialize the pyttsx3 engine outside the speak function
 engine = pyttsx3.init()
