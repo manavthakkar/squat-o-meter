@@ -1,6 +1,6 @@
 # Helpful Scripts
 
-Welcome to the collection of Python scripts developed during the creation of the app. These scripts provide valuable insights into the squat detection logic and the data flow within the smartphone application.
+Welcome to the collection of Python scripts developed during the creation of the GUI app. These scripts provide insights into the squat detection logic and illustrate how data flows from the smartphone application.
 
 ## Understanding the Development Process
 
