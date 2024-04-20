@@ -1,11 +1,3 @@
-"""
-This script is a simple GUI application that counts the number of squats performed by the user and provides voice feedback.
-The application uses the accelerometer data from the smartphone app to detect squats.
-The user can view the number of squats performed on the meter in real-time.
-The meter will increase by 1 each time a squat is detected.
-
-"""
-
 from PIL import Image
 Image.CUBIC = Image.BICUBIC
 import tkinter as tk
@@ -133,14 +125,6 @@ def set_min_peak_interval(event):
 def selected_month(month):
     month_menu.config(text=month)
     #print("Selected month:", month)
-
-# def plot_month():
-#     selected_month = month_menu.cget("text")
-#     selected_year = year_spinbox.get()
-#     selected_month_num = list(calendar.month_name).index(selected_month)
-#     print("Selected month:", selected_month)
-#     print("Selected year:", selected_year)
-#     print("Selected month number:", selected_month_num)
 
 ################################################
 # Define a global variable to hold the reference to the plot canvas
