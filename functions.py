@@ -20,7 +20,7 @@ def save_squat_count(squat_count):
     
     try:
         # Try loading existing CSV file
-        existing_df = pd.read_csv('squat_count.csv')
+        existing_df = pd.read_csv('database.csv')
         
         # Append new data to existing DataFrame
         updated_df = pd.concat([existing_df, new_df], ignore_index=True)
@@ -29,7 +29,7 @@ def save_squat_count(squat_count):
         updated_df = new_df
     
     # Save updated DataFrame to CSV
-    updated_df.to_csv('squat_count.csv', index=False)
+    updated_df.to_csv('database.csv', index=False)
 
 
 def get_squat_sum_month(month, year):
@@ -39,9 +39,9 @@ def get_squat_sum_month(month, year):
     """
     # Read CSV file
     try:
-        df = pd.read_csv('squat_count.csv')
+        df = pd.read_csv('database.csv')
     except FileNotFoundError:
-        print("Error: squat_count.csv file not found.")
+        print("Error: database.csv file not found.")
         return None
 
     # Filter DataFrame based on month and year

@@ -25,6 +25,9 @@ from functions import *
 import threading
 import queue
 import calendar
+import pandas as pd
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 # Parameters for squat detection
 buffer_size = 500 # higher buffer size for better accuracy
@@ -131,13 +134,87 @@ def selected_month(month):
     month_menu.config(text=month)
     #print("Selected month:", month)
 
-def plot_month():
+# def plot_month():
+#     selected_month = month_menu.cget("text")
+#     selected_year = year_spinbox.get()
+#     selected_month_num = list(calendar.month_name).index(selected_month)
+#     print("Selected month:", selected_month)
+#     print("Selected year:", selected_year)
+#     print("Selected month number:", selected_month_num)
+
+################################################
+# Define a global variable to hold the reference to the plot canvas
+plot_canvas = None
+
+def generate_plot():
+    global plot_canvas
     selected_month = month_menu.cget("text")
-    selected_year = year_spinbox.get()
-    selected_month_num = list(calendar.month_name).index(selected_month)
-    print("Selected month:", selected_month)
-    print("Selected year:", selected_year)
-    print("Selected month number:", selected_month_num)
+    selected_month_number = list(calendar.month_name).index(selected_month)
+    selected_year = int(year_spinbox.get())
+    
+    # Read the data from the CSV file
+    try:
+        df = pd.read_csv('database.csv')
+    except FileNotFoundError:
+        messagebox.showerror("Error", "CSV file not found!")
+        return
+    
+    # Filter the DataFrame for the selected month and year
+    df_selected = df[(df['Month'] == selected_month_number) & (df['Year'] == selected_year)]
+    
+    if df_selected.empty:
+        messagebox.showinfo("Info", "No data available for the selected month and year!")
+        return
+
+    # Create a DataFrame with all dates in the selected month
+    days_in_month = range(1, 32)  # Assuming maximum of 31 days in a month for simplicity
+    
+    # Merge with existing DataFrame to fill missing dates with count 0
+    df_month = pd.DataFrame({'Day': days_in_month}).merge(df_selected, on='Day', how='left').fillna(0)
+
+    # Group by day and sum the counts
+    df_daily_sum = df_month.groupby('Day')['Count'].sum().reset_index()
+
+    # Create a new figure for the plot with fixed size
+    fig, ax = plt.subplots(figsize=(8, 6))
+
+    # Plot the count values for the selected month
+    #fig, ax = plt.subplots()
+    ax.plot(df_daily_sum['Day'], df_daily_sum['Count'], marker='o')
+    ax.set_xlabel('Day')
+    ax.set_ylabel('Squats done')
+    ax.set_title(f'Progress report for {selected_month}, {selected_year}')
+
+    # Calculate and display the total count for the month
+    total_count = df_month['Count'].sum()
+    ax.text(0.05, 0.95, f'Total Squats: {total_count}', horizontalalignment='left', verticalalignment='center', transform=ax.transAxes, fontsize=10)
+
+    # Count the number of days when the count is greater than 10
+    days_gt_10 = (df_month['Count'] > 10).sum()  # Counting days in df_month
+    ax.text(0.05, 0.9, f'Days with Squats > 10: {days_gt_10}', horizontalalignment='left', verticalalignment='center', transform=ax.transAxes, fontsize=10)
+
+    # Find the longest streak of consecutive days with count > 0
+    streak = 0
+    max_streak = 0
+    for count in df_month['Count']:
+        if count > 0:
+            streak += 1
+        else:
+            max_streak = max(max_streak, streak)
+            streak = 0
+    max_streak = max(max_streak, streak)  # Update max_streak for the last streak
+    ax.text(0.05, 0.85, f'Longest Streak: {max_streak} days', horizontalalignment='left', verticalalignment='center', transform=ax.transAxes, fontsize=10)
+
+    # If there is an existing plot canvas, destroy it
+    if plot_canvas:
+        plot_canvas.get_tk_widget().destroy()
+
+    # Embed the plot in the Tkinter window
+    plot_canvas = FigureCanvasTkAgg(fig, master=frame2_tab2)
+    plot_canvas.draw()
+    plot_canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
+
+################################################
 
 
 def save_data():
@@ -485,12 +562,16 @@ plot_month_button_style.configure("success.Outline.TButton", font=("Helvetica", 
 
 ############# Create a button to plot the month data ################
 
-plot_month_button = ttk.Button(frame1_tab2, text="Show Month Data", command=plot_month, #width=9, 
+plot_month_button = ttk.Button(frame1_tab2, text="Show Month Data", command=generate_plot, #width=9, 
                                bootstyle="success", 
                                style="success.Outline.TButton")
 plot_month_button.grid(row=0, column=2, padx=(90,0), pady=30)
 
 ############# End of button to fetch the data ################
+
+############# Create a frame to hold the plot ################
+frame2_tab2 = ttk.Frame(tab2)
+frame2_tab2.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
 
 # Initialize the pyttsx3 engine outside the speak function
