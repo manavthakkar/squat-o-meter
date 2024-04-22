@@ -35,45 +35,29 @@ target_squats = 10
 voice_index = 0
 volume = 1
 
-def get_accZ(): 
+def get_accZ():
     try:
         response = r.get(url + '&' + 'accZ').text
         data = json.loads(response)
-        
         accZ = data.get('buffer', {}).get('accZ', {}).get('buffer', [None])[0]
-        
         if accZ is not None:
-            try:
-                accZ = float(accZ)
-            except ValueError:
-                print("Error: Could not convert accZ to float")
-                return None
+            return float(accZ)
     except r.exceptions.RequestException as e:
         print(f"Error: {e}")
         my_meter.configure(subtext="Connection lost!")
-        return None
-        
-    return accZ
+    return None
 
-def get_accAbs(): 
+def get_accAbs():
     try:
         response = r.get(url + '&' + 'acc').text
         data = json.loads(response)
-        
         acc = data.get('buffer', {}).get('acc', {}).get('buffer', [None])[0]
-        
         if acc is not None:
-            try:
-                acc = float(acc)
-            except ValueError:
-                print("Error: Could not convert acc to float")
-                return None
+            return float(acc)
     except r.exceptions.RequestException as e:
         print(f"Error: {e}")
         my_meter.configure(subtext="Connection lost!")
-        return None
-        
-    return acc
+    return None
 
 def set_target_squats():
     global target_squats
@@ -92,20 +76,12 @@ def on_voice_select(event):
 
 def toggle_volume():
     global volume
-    if voice_var.get() == 0:
-        volume = 1
-        voice_button.config(text="Turn Voice Off")
-        print("Value:", voice_var.get())
-    else:
-        volume = 0
-        voice_button.config(text="Turn Voice On")
-        print("Value:", voice_var.get())
+    volume = 0 if voice_var.get() else 1
+    voice_button.config(text="Turn Voice Off" if volume else "Turn Voice On")
 
 def toggle_acc():
-    if acc_button_var.get() == 1:
-        acc_button.config(text="Using Absolute acceleration")
-    else:
-        acc_button.config(text="Use Absolute acceleration")
+    acc_button_var.set(1 - acc_button_var.get())
+    acc_button.config(text="Using Absolute acceleration" if acc_button_var.get() else "Use Absolute acceleration")
 
 def show_acc_threshold(event):
     global height_threshold
@@ -243,57 +219,44 @@ def speak(text, voice_index=1, volume=1):
 
 # Function to detect squats and update the meter
 def detect_squats():
-    global squats_count
-    global data_buffer
-    global last_peak_time
-    global max_peak_index
-    global target_squats
-    global acc_button_var
-    
-    if acc_button_var.get() == 1:
-        # print("Using absolute acceleration")  
+    global squats_count, data_buffer, last_peak_time, max_peak_index, target_squats, acc_button_var
+    if acc_button_var.get():
         accZ = get_accAbs()
-    else:   
-        # print("Using acceleration in Z direction") 
+    else:
         accZ = get_accZ()
 
-    # If the connection is not refused and the squats count is less than the target squats
     if accZ is not None and squats_count < target_squats:
         my_meter.configure(subtext="Squats done")
-    
+
     data_buffer.append(accZ)
     if len(data_buffer) > buffer_size:
         data_buffer = data_buffer[-buffer_size:]
-    
-    peaks, _ = find_peaks(data_buffer, height= height_threshold, distance= distance_threshold)  
 
+    peaks, _ = find_peaks(data_buffer, height=height_threshold, distance=distance_threshold)
     if len(peaks) > 0:
         current_time = time.time()
-        if (peaks[-1] > max_peak_index) and (current_time - last_peak_time > min_peak_interval):
-                squats_count += 1
-                # speak(str(squats_count), voice_index, volume)
-                last_peak_time = current_time
-                max_peak_index = peaks[-1]
-                print("Squat detected! Count:", squats_count)
-                if squats_count < target_squats:
-                    speak(str(squats_count), voice_index, volume)
-                    my_meter.configure(amountused=squats_count)
-                    # my_meter.configure(subtext="Squats done")
-                elif squats_count == target_squats:    
-                    my_meter.configure(amountused=target_squats)
-                    my_meter.configure(subtext="Target completed!")
-                    speak(target_squats, voice_index, volume)
-                    speak(f"Congratulations! You have reached your target of {target_squats} squats!", voice_index, volume)
-                else:
-                    squats_count = 0
-                    my_meter.configure(amountused=squats_count)
-                    my_meter.configure(subtext="Squats done")
-                    target_squats_button.config(text=f"Set Target Squats")
+        if peaks[-1] > max_peak_index and current_time - last_peak_time > min_peak_interval:
+            squats_count += 1
+            last_peak_time = current_time
+            max_peak_index = peaks[-1]
+            print("Squat detected! Count:", squats_count)
+            if squats_count < target_squats:
+                speak(str(squats_count), voice_index, volume)
+                my_meter.configure(amountused=squats_count)
+            elif squats_count == target_squats:
+                my_meter.configure(amountused=target_squats)
+                my_meter.configure(subtext="Target completed!")
+                speak(target_squats, voice_index, volume)
+                speak(f"Congratulations! You have reached your target of {target_squats} squats!", voice_index, volume)
+            else:
+                squats_count = 0
+                my_meter.configure(amountused=squats_count)
+                my_meter.configure(subtext="Squats done")
+                target_squats_button.config(text=f"Set Target Squats")
         else:
-             max_peak_index = peaks[-1]                         # As the buffer moves, the max_peak_index will change (reduce the index to the last peak detected)
-             squats_count = int(my_meter.amountusedvar.get())   # Update the squats count from the interactive meter
-    
-    # Schedule the function to run again after a short delay
+            max_peak_index = peaks[-1]
+            squats_count = int(my_meter.amountusedvar.get())
+
     root.after(100, detect_squats)
 
 root = ttk.Window(themename="superhero")
