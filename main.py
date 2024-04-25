@@ -80,8 +80,10 @@ def toggle_volume():
     voice_button.config(text="Turn Voice Off" if volume else "Turn Voice On")
 
 def toggle_acc():
-    acc_button_var.set(1 - acc_button_var.get())
-    acc_button.config(text="Using Absolute acceleration" if acc_button_var.get() else "Use Absolute acceleration")
+    if acc_button_var.get() == 1:
+        acc_button.config(text="Using Absolute acceleration")
+    else:
+        acc_button.config(text="Use Absolute acceleration")
 
 def show_acc_threshold(event):
     global height_threshold
